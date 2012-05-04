@@ -92,6 +92,7 @@
 #
 class GetoptLong
   attr_accessor :accept_all_args
+  attr_accessor :return_nil_args
   #
   # Orderings.
   #
@@ -534,7 +535,11 @@ class GetoptLong
         elsif 0 < ARGV.length && ARGV[0] !~ /^-./
           option_argument = ARGV.shift
         else
-          option_argument = ''
+          if self.return_nil_args
+            option_argument = nil
+          else
+            option_argument = ''
+          end
         end
       elsif argument =~ /=(.*)$/
         set_error(NeedlessArgument,
