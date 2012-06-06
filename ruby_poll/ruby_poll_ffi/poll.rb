@@ -118,7 +118,6 @@ class IO
         ret_read << poll[:io] if poll[:events] == IO::Poll::POLLIN and not struct[:revents].zero?
         ret_write << poll[:io] if poll[:events] == IO::Poll::POLLOUT and not struct[:revents].zero?
         ret_error << poll[:io] if poll[:events] == IO::Poll::POLLERR and not struct[:revents].zero?
-        STDERR.puts "revents for #{poll[:io].inspect} are: #{struct[:revents]}"
       end
       return [ret_read, ret_write, ret_error]
     end # if/else ret
@@ -126,32 +125,32 @@ class IO
 
 end # class IO
 
-Struct.new("PollFdStruct", :fd, :events, :revents)
 
-pollfd_len = 3
-pollfds = FFI::MemoryPointer.new(IO::PollFdStruct, pollfd_len)
 
-#  pollfds_rb = []
-#  x = PollFdStruct.new
-#STDERR.puts "pointer is: #{pollfds.get_pointer(0)}"
-pollfd_len.times do |i|
-  struct = IO::PollFdStruct.new(pollfds[i])
-  struct[:fd] = i
-  struct[:events] = 7
-  struct[:revents] = 0
+if __FILE__ == $0
+  # allocate memory the size of of 3 PollFdStructs
+  pollfd_len = 3
+  pollfds = FFI::MemoryPointer.new(IO::PollFdStruct, pollfd_len)
+
+  # populate it with stdin/out/err, poll all events. revents is 0 going in.
+  pollfd_len.times do |i|
+    struct = IO::PollFdStruct.new(pollfds[i])
+    struct[:fd] = i
+    struct[:events] = IO::Poll::POLLSTANDARD
+    struct[:revents] = 0
+  end
+  
+  # call poll
+  # The resulting pollfds structure will have :revents populated with the poll results
+  # The pollfds structure can be re-used
+  ret = IO.poll(pollfds, pollfd_len, 4);
+
+  STDERR.puts "ret: #{ret.inspect}"
+  
+  # Implement IO.select() using poll(). Easy to use, terrible performance.
+  x = IO.select_using_poll([STDIN], [STDOUT], [], 5);
+  
+  STDERR.puts "IO.select_using_poll([#{STDIN.inspect}], [#{STDOUT.inspect}], [], 5):"
+  STDERR.puts x.inspect
+  STDERR.puts "and inval is: #{IO::Poll::POLLNVAL}"
 end
-
-#  pollfds_rb.each_with_index do |p, i|
-#    struct_bytes = pollfds_rb[i].get_bytes(0, PollFdStruct.size)
-#    pollfds[i].put_bytes(0, struct_bytes)
-#  end
-
-ret = IO.poll(pollfds, pollfd_len, 4);
-
-STDERR.puts "ret: #{ret.inspect}"
-
-x = IO.select_using_poll([STDIN], [STDOUT], [], 5);
-
-STDERR.puts "IO.select_using_poll([#{STDIN.inspect}], [#{STDOUT.inspect}], [], 5):"
-STDERR.puts x.inspect
-STDERR.puts "and inval is: #{IO::Poll::POLLNVAL}"
