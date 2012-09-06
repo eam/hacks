@@ -8,14 +8,14 @@
  *
  */
 
+#define _BSD_SOURCE
+#include <errno.h>
 #include <sys/types.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <pwd.h>
 #include <string.h>
-
-extern int errno;
 
 void die(int retval, char * msg1, char * msg2) {
   fprintf(stderr, "%s%s\n", msg1, msg2);
