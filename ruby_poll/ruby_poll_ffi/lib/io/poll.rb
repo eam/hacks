@@ -89,6 +89,9 @@ class IO
   attach_function 'poll', [:pointer, :int, :int], :int
 
   def IO.select_using_poll(read, write, error, timeout)
+    read = [] if read.nil?
+    write = [] if write.nil?
+    error = [] if error.nil?
     all = read.map { |f| { :io => f, :events => IO::Poll::POLLIN } } +
           write.map { |f| { :io => f, :events => IO::Poll::POLLOUT } } +
           error.map { |f| { :io => f, :events => IO::Poll::POLLERR } }
@@ -105,7 +108,7 @@ class IO
       raise "poll error"
     elsif 0 == ret
       # timed out, exit fast
-      return [[][][]]
+      return [[],[],[]]
     else
       # returned some interesting descriptors
       ret_read, ret_write, ret_error = [], [], []
