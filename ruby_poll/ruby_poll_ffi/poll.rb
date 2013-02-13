@@ -149,8 +149,12 @@ if __FILE__ == $0
   
   # Implement IO.select() using poll(). Easy to use, terrible performance.
   x = IO.select_using_poll([STDIN], [STDOUT], [], 5);
+  y = IO.select([STDIN], [STDOUT], [], 5);
   
   STDERR.puts "IO.select_using_poll([#{STDIN.inspect}], [#{STDOUT.inspect}], [], 5):"
   STDERR.puts x.inspect
   STDERR.puts "and inval is: #{IO::Poll::POLLNVAL}"
+  STDERR.puts "XXXX"
+  STDERR.puts "IO.select([STDIN], [STDOUT], [], 5);"
+  STDERR.puts y.inspect
 end
